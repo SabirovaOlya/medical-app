@@ -1,15 +1,16 @@
+from django.contrib.auth import authenticate
 from django.core.cache import cache
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import CharField, IntegerField
-from rest_framework.serializers import Serializer, ModelSerializer
+from rest_framework.fields import CharField
+from rest_framework.serializers import Serializer, ModelSerializer, IntegerField
 
 from apps.users.models import User, Profile, Hospital, Pharmacy, Client, Doctor
 
 
-class UserModelSerializer(Serializer):
+class UserModelSerializer(ModelSerializer):
     class Meta:
-        model = User.objects.all()
-        fields = ['id', 'username']
+        model = User
+        fields = ['id', 'username', 'email']
 
 
 class ProfileModelSerializer(ModelSerializer):
@@ -17,51 +18,35 @@ class ProfileModelSerializer(ModelSerializer):
         model = Profile
         fields = ['role', 'user']
 
-    def create(self, validated_data):
-        user = validated_data['user']
-        role = validated_data['role']
 
-        profile = Profile.objects.create(user=user, role=role)
-
-        if role == Profile.Type.DOCTOR:
-            Doctor.objects.create(user=profile)
-        elif role == Profile.Type.PHARMACY:
-            Pharmacy.objects.create(user=profile)
-        elif role == Profile.Type.HOSPITAL:
-            Hospital.objects.create(user=profile)
-        elif role == Profile.Type.CLIENT:
-            Client.objects.create(user=profile, name=user.username)
-
-        return profile
-
-
-class HospitalModelSerializer(Serializer):
+class HospitalModelSerializer(ModelSerializer):
     class Meta:
         model = Hospital
-        fields = ['id']
+        fields = ['id', 'about', 'location']
 
 
-class PharmacyModelSerializer(Serializer):
+class PharmacyModelSerializer(ModelSerializer):
     class Meta:
         model = Pharmacy
         fields = ['id']
 
 
-class ClientModelSerializer(Serializer):
+class ClientModelSerializer(ModelSerializer):
     class Meta:
         model = Client
         fields = ['id']
 
 
-class DoctorModelSerializer(Serializer):
+class DoctorModelSerializer(ModelSerializer):
     class Meta:
         model = Doctor
-        fields = ['id']
+        fields = ['id', 'user', 'about', 'price', 'hospital']
 
 
 class EmailModelSerializer(Serializer):
     email = CharField(max_length=255)
     username = CharField(max_length=150)
+    password = CharField(write_only=True)
 
     def validate(self, attrs):
         email = attrs.get('email')
@@ -80,9 +65,31 @@ class VerifyEmailSerializer(Serializer):
         email = attrs.get('email')
         code = attrs.get('code')
         cache_code = cache.get(email)
+
         print(f"Email: {email}, Code: {code}, Cached Code: {cache_code}")
-        if code != cache_code.get('code'):
-            raise ValidationError('Code is incorrect')
+
+        if cache_code is None:
+            raise ValidationError('No code found for this email.')
+
         if code != cache_code:
-            raise ValidationError('Code expired')
+            raise ValidationError('Code is incorrect or expired.')
+
         return attrs
+
+
+class LoginSerializer(Serializer):
+    email = CharField(max_length=255)
+    password = CharField(write_only=True)
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        user = authenticate(email=email, password=password)
+        if user is None:
+            raise ValidationError('Invalid login credentials.')
+
+        if not user.is_active:
+            raise ValidationError('Email not verified. Please verify your email.')
+
+        return {'email': user.email, 'username': user.username}

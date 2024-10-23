@@ -3,7 +3,7 @@ from django.db.models import Model, CharField, TextChoices, OneToOneField, CASCA
 
 
 class User(AbstractUser):
-    phone_number = CharField(max_length=255, unique=True)
+    phone_number = CharField(max_length=255, unique=True, null=True, blank=True)
 
     def __str__(self):
         return self.username
@@ -28,18 +28,27 @@ class Hospital(Model):
     about = TextField()
     location = TextField()
 
+    def __str__(self):
+        return f"Hospital {self.user}"
+
 
 class Doctor(Model):
     user = OneToOneField(Profile, on_delete=CASCADE)
-    about = TextField()
+    about = TextField(null=True, blank=True)
     price = IntegerField(default=0)
-    hospital = ForeignKey(Hospital, on_delete=CASCADE)
+    hospital = ForeignKey(Hospital, on_delete=CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return f"Doctor {self.user}"
 
 
 class Pharmacy(Model):
     user = OneToOneField(Profile, on_delete=CASCADE)
     about = TextField()
     location = TextField()
+
+    def __str__(self):
+        return f"Pharmacy {self.user}"
 
 
 class Client(Model):
@@ -48,3 +57,6 @@ class Client(Model):
     weight = IntegerField()
     height = IntegerField()
     blood_pressure = IntegerField()
+
+    def __str__(self):
+        return f"Client {self.user}"
