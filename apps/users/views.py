@@ -1,17 +1,12 @@
-from random import randint
-
-from django.core.cache import cache
 from drf_spectacular.utils import extend_schema
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from apps.users.models import User, Profile, Hospital, Pharmacy, Doctor, Client
-from apps.users.serializers import EmailModelSerializer, UserModelSerializer, \
+from apps.users.serializers import UserModelSerializer, \
     ProfileModelSerializer, HospitalModelSerializer, PharmacyModelSerializer, DoctorModelSerializer, \
-    ClientModelSerializer, VerifyEmailSerializer, LoginSerializer
-from apps.users.tasks import send_to_email
+    ClientModelSerializer, LoginSerializer, SignUpSerializer
 
 
 @extend_schema(tags=['Users'])
@@ -72,9 +67,9 @@ class ClientListCreateView(ListCreateAPIView):
     serializer_class = ClientModelSerializer
 
 
-class SendEmailAPIView(GenericAPIView):
-    serializer_class = EmailModelSerializer
-    permission_classes = [AllowAny]
+@extend_schema(tags=['Sign Up'])
+class SignUpAPIView(GenericAPIView):
+    serializer_class = SignUpSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -84,49 +79,14 @@ class SendEmailAPIView(GenericAPIView):
         username = serializer.data['username']
         password = serializer.validated_data['password']
 
-        # Save user temporarily (set is_active=False until email is verified)
         user = User.objects.create(email=email, username=username, is_active=False)
         user.set_password(password)
         user.save()
 
-        code = randint(1000, 9999)
-        cache.set(email, code, timeout=120)
-
-        message = f"Your verification code is {code}"
-        send_to_email.delay(message, email)
-
-        print(f"Email: {email}, code: {code}")
-        return Response({"message": "Verification code sent to your email"})
+        return Response({"message": "Success"})
 
 
-class VerifyEmailAPIView(GenericAPIView):
-    serializer_class = VerifyEmailSerializer
-    permission_classes = [AllowAny]
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        email = serializer.validated_data['email']
-        code = serializer.validated_data['code']
-
-        cached_code = cache.get(email)
-
-        if cached_code is None:
-            raise ValidationError('No cached data found for this email.')
-
-        if code != cached_code:
-            raise ValidationError('Code is incorrect.')
-
-        # Activate the user
-        user = User.objects.filter(email=email).first()
-        if user:
-            user.is_active = True
-            user.save()
-
-        return Response({"message": "Email verified, account activated successfully"})
-
-
+@extend_schema(tags=['Login'])
 class LoginAPIView(GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [AllowAny]
@@ -139,3 +99,30 @@ class LoginAPIView(GenericAPIView):
         username = serializer.validated_data['username']
 
         return Response({"message": f"Login successful, welcome {username}"})
+
+# class VerifyEmailAPIView(GenericAPIView):
+#     serializer_class = VerifyEmailSerializer
+#     permission_classes = [AllowAny]
+# 
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+# 
+#         email = serializer.validated_data['email']
+#         code = serializer.validated_data['code']
+# 
+#         cached_code = cache.get(email)
+# 
+#         if cached_code is None:
+#             raise ValidationError('No cached data found for this email.')
+# 
+#         if code != cached_code:
+#             raise ValidationError('Code is incorrect.')
+# 
+#         # Activate the user
+#         user = User.objects.filter(email=email).first()
+#         if user:
+#             user.is_active = True
+#             user.save()
+# 
+#         return Response({"message": "Email verified, account activated successfully"})

@@ -1,4 +1,3 @@
-from django.contrib.auth import authenticate
 from django.core.cache import cache
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CharField
@@ -43,7 +42,7 @@ class DoctorModelSerializer(ModelSerializer):
         fields = ['id', 'user', 'about', 'price', 'hospital']
 
 
-class EmailModelSerializer(Serializer):
+class SignUpSerializer(Serializer):
     email = CharField(max_length=255)
     username = CharField(max_length=150)
     password = CharField(write_only=True)
@@ -54,6 +53,8 @@ class EmailModelSerializer(Serializer):
 
         if User.objects.filter(email=email).exists():
             raise ValidationError('A user with this email already exists.')
+        elif User.objects.filter(username=username).exists():
+            raise ValidationError('A user with this username already exists')
         return attrs
 
 
@@ -85,11 +86,12 @@ class LoginSerializer(Serializer):
         email = attrs.get('email')
         password = attrs.get('password')
 
-        user = authenticate(email=email, password=password)
-        if user is None:
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
             raise ValidationError('Invalid login credentials.')
 
-        if not user.is_active:
-            raise ValidationError('Email not verified. Please verify your email.')
+        if not user.check_password(password):
+            raise ValidationError('Invalid login credentials.')
 
         return {'email': user.email, 'username': user.username}
