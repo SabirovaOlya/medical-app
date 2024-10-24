@@ -1,7 +1,8 @@
 from django.urls import path
 
 from apps.users.views import UserListCreateView, ProfileListCreateView, HospitalListCreateView, PharmacyListCreateView, \
-    ClientListCreateView, DoctorListCreateView, SignUpAPIView, LoginAPIView
+    ClientListCreateView, DoctorListCreateView, SignUpAPIView, LoginAPIView, SendResetEmailAPIView, \
+    VerifyEmailCodeAPIView, ResetPasswordAPIView
 
 urlpatterns = [
     path('user/', UserListCreateView.as_view(), name='user_list'),
@@ -13,5 +14,8 @@ urlpatterns = [
     # Auth
     path('signup/', SignUpAPIView.as_view(), name='send_email'),
     path('login', LoginAPIView.as_view(), name='login'),
-    # path('verify-email/', VerifyEmailAPIView.as_view(), name='verify-email'),
+    # Restore password
+    path('send-email/', SendResetEmailAPIView.as_view(), name='send-email'),
+    path('verify-email/', VerifyEmailCodeAPIView.as_view(), name='verify-email'),
+    path('restore-password', ResetPasswordAPIView.as_view(), name='restore-password')
 ]

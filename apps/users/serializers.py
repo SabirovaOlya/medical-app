@@ -58,26 +58,6 @@ class SignUpSerializer(Serializer):
         return attrs
 
 
-class VerifyEmailSerializer(Serializer):
-    email = CharField(max_length=255, default='uzblordsardorboy0705@gmail.com')
-    code = IntegerField(default=4444)
-
-    def validate(self, attrs: dict):
-        email = attrs.get('email')
-        code = attrs.get('code')
-        cache_code = cache.get(email)
-
-        print(f"Email: {email}, Code: {code}, Cached Code: {cache_code}")
-
-        if cache_code is None:
-            raise ValidationError('No code found for this email.')
-
-        if code != cache_code:
-            raise ValidationError('Code is incorrect or expired.')
-
-        return attrs
-
-
 class LoginSerializer(Serializer):
     email = CharField(max_length=255)
     password = CharField(write_only=True)
@@ -95,3 +75,46 @@ class LoginSerializer(Serializer):
             raise ValidationError('Invalid login credentials.')
 
         return {'email': user.email, 'username': user.username}
+
+
+class EmailModelSerializer(Serializer):
+    email = CharField(max_length=255)
+
+
+class VerifyEmailSerializer(Serializer):
+    email = CharField(max_length=255)
+    code = IntegerField()
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        code = attrs.get('code')
+
+        cache_data = cache.get(email)
+        if not cache_data:
+            raise ValidationError('Verification code expired.')
+
+        if code != cache_data.get('code'):
+            raise ValidationError('Code is incorrect.')
+
+        return attrs
+
+
+class ResetPasswordSerializer(Serializer):
+    email = CharField(max_length=255)
+    new_password = CharField(write_only=True)
+    confirm_password = CharField(write_only=True)
+
+    def validate(self, attrs):
+        new_password = attrs.get('new_password')
+        confirm_password = attrs.get('confirm_password')
+
+        if new_password != confirm_password:
+            raise ValidationError("Passwords do not match.")
+
+        return attrs
+
+    def save(self, **kwargs):
+        email = self.validated_data['email']
+        user = User.objects.get(email=email)
+        user.set_password(self.validated_data['new_password'])
+        user.save()
