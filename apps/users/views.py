@@ -1,3 +1,6 @@
+from random import randint
+
+from django.core.cache import cache
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import GenericAPIView, ListCreateAPIView
 from rest_framework.permissions import AllowAny
@@ -6,7 +9,9 @@ from rest_framework.response import Response
 from apps.users.models import User, Profile, Hospital, Pharmacy, Doctor, Client
 from apps.users.serializers import UserModelSerializer, \
     ProfileModelSerializer, HospitalModelSerializer, PharmacyModelSerializer, DoctorModelSerializer, \
-    ClientModelSerializer, LoginSerializer, SignUpSerializer
+    ClientModelSerializer, LoginSerializer, SignUpSerializer, EmailModelSerializer, VerifyEmailSerializer, \
+    ResetPasswordSerializer
+from apps.users.tasks import send_to_email
 
 
 @extend_schema(tags=['Users'])
@@ -100,29 +105,53 @@ class LoginAPIView(GenericAPIView):
 
         return Response({"message": f"Login successful, welcome {username}"})
 
-# class VerifyEmailAPIView(GenericAPIView):
-#     serializer_class = VerifyEmailSerializer
-#     permission_classes = [AllowAny]
-# 
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-# 
-#         email = serializer.validated_data['email']
-#         code = serializer.validated_data['code']
-# 
-#         cached_code = cache.get(email)
-# 
-#         if cached_code is None:
-#             raise ValidationError('No cached data found for this email.')
-# 
-#         if code != cached_code:
-#             raise ValidationError('Code is incorrect.')
-# 
-#         # Activate the user
-#         user = User.objects.filter(email=email).first()
-#         if user:
-#             user.is_active = True
-#             user.save()
-# 
-#         return Response({"message": "Email verified, account activated successfully"})
+
+class SendResetEmailAPIView(GenericAPIView):
+    serializer_class = EmailModelSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.data['email']
+
+        code = randint(1000, 9999)
+        cache.set(email, {'code': code}, timeout=600)
+
+        message = f"Your password reset code is {code}"
+        send_to_email.delay(message, email)
+
+        email = serializer.data['email']
+        code = randint(1000, 9999)
+        cache.set(email, code, timeout=120)
+
+        message = f"Your verification code is {code}"
+        send_to_email(message, email)
+
+        print(f"Email: {email}, code: {code}")
+        return Response({"message": "Code sent successfully"})
+
+
+class VerifyEmailCodeAPIView(GenericAPIView):
+    serializer_class = VerifyEmailSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+
+        return Response({"message": "Code verified, proceed to reset password."})
+
+
+class ResetPasswordAPIView(GenericAPIView):
+    serializer_class = ResetPasswordSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Save the new password for the user
+        serializer.save()
+
+        return Response({"message": "Password reset successfully"})
