@@ -90,11 +90,15 @@ class VerifyEmailSerializer(Serializer):
         code = attrs.get('code')
 
         cache_data = cache.get(email)
-        if not cache_data:
+        if cache_data is None:
             raise ValidationError('Verification code expired.')
 
-        if code != cache_data.get('code'):
-            raise ValidationError('Code is incorrect.')
+        if isinstance(cache_data, int):
+            if code != cache_data:
+                raise ValidationError('Code is incorrect.')
+        else:
+            if code != cache_data.get('code'):
+                raise ValidationError('Code is incorrect.')
 
         return attrs
 
