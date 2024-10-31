@@ -29,6 +29,7 @@ class Hospital(Model):
     name = CharField(max_length=255)
     about = TextField()
     location = TextField()
+    fee = IntegerField(default=0)  # Add fee field for admin fee
 
     def __str__(self):
         return f"Hospital {self.user}"
@@ -82,12 +83,21 @@ class Booking(Model):
     reason = CharField(max_length=255)
     status = CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
     consultation_price = IntegerField()
+    admin_fee = IntegerField(default=0)  # New field for admin fee
     payment_status = BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.consultation_price and self.doctor:
             self.consultation_price = self.doctor.price
+
+        if self.doctor and self.doctor.hospital:
+            self.admin_fee = self.doctor.hospital.fee
+
         super().save(*args, **kwargs)
+
+    @property
+    def total(self):
+        return self.consultation_price + self.admin_fee
 
     def __str__(self):
         return f"Booking for {self.client.user.user.username} with {self.doctor.name}"

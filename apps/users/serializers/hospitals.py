@@ -13,5 +13,5 @@ class HospitalModelSerializer(ModelSerializer):
 class HospitalUpdateDeleteModelSerializer(ModelSerializer):
     class Meta:
         model = Hospital
-        fields = ['name', 'about']
+        fields = ['name', 'about', 'location', 'fee']
         read_only_fields = ['id', 'user']
