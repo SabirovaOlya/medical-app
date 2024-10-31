@@ -19,15 +19,15 @@ def create_related_model(sender, instance, created, **kwargs):
             Client.objects.create(user=instance)
 
 
-@receiver(pre_save, sender=User)
-def user_pre_save(sender, instance: User, **kwargs):
-    if instance.pk is None:  # and (not isinstance(instance.balance, int) or instance.balance == 0):
-        # instance.balance = 5000
-
-        send_mail(
-            'Tema',
-            'You signed up successfully',
-            settings.DEFAULT_FROM_EMAIL,
-            [instance.email],
-            fail_silently=False,
-        )
+# @receiver(pre_save, sender=User)
+# def user_pre_save(sender, instance: User, **kwargs):
+#     if instance.pk is None:  # and (not isinstance(instance.balance, int) or instance.balance == 0):
+#         # instance.balance = 5000
+#
+#         send_mail(
+#             'Tema',
+#             'You signed up successfully',
+#             settings.DEFAULT_FROM_EMAIL,
+#             [instance.email],
+#             fail_silently=False,
+#         )

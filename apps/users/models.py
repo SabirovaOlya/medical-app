@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
-from django.db.models import Model, CharField, TextChoices, OneToOneField, CASCADE, TextField, IntegerField, ForeignKey
+from django.db.models import Model, CharField, TextChoices, OneToOneField, CASCADE, TextField, IntegerField, ForeignKey, \
+    ImageField, BooleanField, TimeField, DateField
 
 
 class User(AbstractUser):
@@ -25,6 +26,7 @@ class Profile(Model):
 
 class Hospital(Model):
     user = OneToOneField(Profile, on_delete=CASCADE)
+    name = CharField(max_length=255)
     about = TextField()
     location = TextField()
 
@@ -34,9 +36,12 @@ class Hospital(Model):
 
 class Doctor(Model):
     user = OneToOneField(Profile, on_delete=CASCADE)
-    about = TextField(null=True, blank=True)
-    price = IntegerField(default=0)
     hospital = ForeignKey(Hospital, on_delete=CASCADE, null=True, blank=True)
+    name = CharField(max_length=255)
+    description = TextField(null=True, blank=True)
+    image = ImageField(upload_to='doctors/%Y/%m/%d/', null=True, blank=True)
+    score = IntegerField(default=0)
+    price = IntegerField(default=0)
 
     def __str__(self):
         return f"Doctor {self.user}"
@@ -44,6 +49,7 @@ class Doctor(Model):
 
 class Pharmacy(Model):
     user = OneToOneField(Profile, on_delete=CASCADE)
+    name = CharField(max_length=255)
     about = TextField()
     location = TextField()
 
@@ -54,9 +60,34 @@ class Pharmacy(Model):
 class Client(Model):
     user = OneToOneField(Profile, on_delete=CASCADE)
     name = CharField(max_length=255)
-    weight = IntegerField()
-    height = IntegerField()
-    blood_pressure = IntegerField()
+    weight = IntegerField(null=True, blank=True)
+    height = IntegerField(null=True, blank=True)
+    blood_pressure = IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"Client {self.user}"
+
+
+class Booking(Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('CONFIRMED', 'Confirmed'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+
+    client = ForeignKey(Client, CASCADE, related_name='bookings')
+    doctor = ForeignKey(Doctor, CASCADE, related_name='bookings')
+    date = DateField(auto_now_add=True, null=True)
+    time = TimeField(auto_now_add=True, null=True)
+    reason = CharField(max_length=255)
+    status = CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    consultation_price = IntegerField()
+    payment_status = BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.consultation_price and self.doctor:
+            self.consultation_price = self.doctor.price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Booking for {self.client.user.user.username} with {self.doctor.name}"
