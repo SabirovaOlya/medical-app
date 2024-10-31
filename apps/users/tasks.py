@@ -6,5 +6,5 @@ from root import settings
 
 @shared_task
 def send_to_email(msg: str, email: str):
-    subject = 'Tema'
+    subject = 'Verification code'
     send_mail(subject, msg, settings.EMAIL_HOST_USER, [email])
