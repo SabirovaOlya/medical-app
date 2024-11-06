@@ -1,6 +1,5 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import IsAuthenticated
 
 from apps.users.models import Doctor
 from apps.users.serializers import DoctorUpdateDeleteModelSerializer, DoctorModelSerializer
@@ -16,7 +15,6 @@ class DoctorListCreateView(ListCreateAPIView):
 class DoctorRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = Doctor.objects.all()
     serializer_class = DoctorUpdateDeleteModelSerializer
-    permission_classes = [IsAuthenticated]
 
     def perform_update(self, serializer):
         serializer.save()
