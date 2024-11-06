@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Model, CharField, TextChoices, OneToOneField, CASCADE, TextField, IntegerField, ForeignKey, \
-    ImageField, BooleanField, TimeField, DateField
+    ImageField, BooleanField, TimeField, DateField, DecimalField
 
 
 class User(AbstractUser):
@@ -29,7 +29,7 @@ class Hospital(Model):
     name = CharField(max_length=255)
     about = TextField()
     location = TextField()
-    fee = IntegerField(default=0)  # Add fee field for admin fee
+    fee = IntegerField(default=0)
 
     def __str__(self):
         return f"Hospital {self.user}"
@@ -82,22 +82,27 @@ class Booking(Model):
     time = TimeField(auto_now_add=True, null=True)
     reason = CharField(max_length=255)
     status = CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
-    consultation_price = IntegerField()
-    admin_fee = IntegerField(default=0)  # New field for admin fee
     payment_status = BooleanField(default=False)
 
-    def save(self, *args, **kwargs):
-        if not self.consultation_price and self.doctor:
-            self.consultation_price = self.doctor.price
+    @property
+    def consultation_fee(self):
+        return self.doctor.price
 
-        if self.doctor and self.doctor.hospital:
-            self.admin_fee = self.doctor.hospital.fee
-
-        super().save(*args, **kwargs)
+    @property
+    def admin_fee(self):
+        return self.doctor.hospital.fee
 
     @property
     def total(self):
-        return self.consultation_price + self.admin_fee
+        return self.consultation_fee + self.admin_fee
 
     def __str__(self):
         return f"Booking for {self.client.user.user.username} with {self.doctor.name}"
+
+
+class Wallet(Model):
+    user = OneToOneField(User, CASCADE, related_name='wallet')
+    balance = DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f"{self.user.username}'s Wallet - Balance: {self.balance}"
