@@ -1,12 +1,12 @@
 from drf_spectacular.utils import extend_schema
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView
 
 from apps.users.models import Doctor
 from apps.users.serializers import DoctorUpdateDeleteModelSerializer, DoctorModelSerializer
 
 
 @extend_schema(tags=['Doctors List'])
-class DoctorListCreateView(ListCreateAPIView):
+class DoctorListCreateView(ListAPIView):
     queryset = Doctor.objects.all()
     serializer_class = DoctorModelSerializer
 
