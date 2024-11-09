@@ -1,12 +1,12 @@
 from drf_spectacular.utils import extend_schema
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView
 
 from apps.users.models import Client
 from apps.users.serializers import ClientModelSerializer, ClientUpdateDeleteModelSerializer
 
 
 @extend_schema(tags=['Clients List'])
-class ClientListCreateView(ListCreateAPIView):
+class ClientListCreateView(ListAPIView):
     queryset = Client.objects.all()
     serializer_class = ClientModelSerializer
 
