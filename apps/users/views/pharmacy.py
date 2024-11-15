@@ -1,141 +1,169 @@
+from django.db import transaction
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from apps.users.models import Product, Cart, CartItem, OrderItem, Order, Payment
-from apps.users.serializers.pharmacy import ProductSerializer, CartSerializer, OrderSerializer, PaymentSerializer
+from apps.users.models import Product, CartItem, Order
+from apps.users.serializers.pharmacy import ProductSerializer, CartItemSerializer, OrderSerializer
 
 
-class ProductListCreateView(ListCreateAPIView):
+@extend_schema(tags=['Drugs List'])
+class DrugListCreateView(ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(pharmacy=self.request.user.profile.pharmacy)
 
 
-class ProductRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+@extend_schema(tags=['Drugs Detail'])
+class DrugRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
 
 
-# Cart Views
-class CartRetrieveView(APIView):
-    permission_classes = [IsAuthenticated]
+@extend_schema(tags=['Cart'])
+class CartView(RetrieveUpdateDestroyAPIView):
+    serializer_class = CartItemSerializer
 
-    def get(self, request):
+    def get_queryset(self):
+        # Filter to return only cart items for the current user’s cart
+        client = self.request.user.profile.client
+        return CartItem.objects.filter(cart__client=client)
+
+    def update(self, request, *args, **kwargs):
+        product_id = request.data.get("product_id")
+        quantity = request.data.get("quantity", 1)
+
+        if not product_id:
+            raise ValidationError("Product ID is required.")
+
         try:
-            cart = Cart.objects.get(client=request.user.profile.client)
-        except Cart.DoesNotExist:
-            cart = Cart.objects.create(client=request.user.profile.client)
-        serializer = CartSerializer(cart)
-        return Response(serializer.data)
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            raise ValidationError("Product not found.")
 
+        if product.stock < quantity:
+            raise ValidationError("Insufficient stock for this product.")
 
-class CartItemAddView(APIView):
-    permission_classes = [IsAuthenticated]
+        client = self.request.user.profile.client
+        cart_item, created = CartItem.objects.get_or_create(cart=client.cart, product=product)
 
-    def post(self, request, product_id):
+        with transaction.atomic():
+            cart_item.quantity = quantity
+            cart_item.save()
+
+        return Response(CartItemSerializer(cart_item).data, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        item_id = request.data.get("item_id")
+        if not item_id:
+            raise ValidationError("Item ID is required.")
+
+        client = self.request.user.profile.client
         try:
-            cart = Cart.objects.get(client=request.user.profile.client)
-        except Cart.DoesNotExist:
-            cart = Cart.objects.create(client=request.user.profile.client)
-
-        product = Product.objects.get(id=product_id)
-        quantity = request.data.get('quantity', 1)
-
-        # Update or create cart item
-        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
-        cart_item.quantity = quantity
-        cart_item.save()
-
-        serializer = CartSerializer(cart)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class CartItemRemoveView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def delete(self, request, item_id):
-        try:
-            cart_item = CartItem.objects.get(id=item_id, cart__client=request.user.profile.client)
+            cart_item = CartItem.objects.get(id=item_id, cart__client=client)
             cart_item.delete()
         except CartItem.DoesNotExist:
             raise ValidationError("Item not found in cart.")
 
-        cart = Cart.objects.get(client=request.user.profile.client)
-        serializer = CartSerializer(cart)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"detail": "Item removed from cart"}, status=status.HTTP_204_NO_CONTENT)
 
 
-# Order Views
+@extend_schema(tags=['Orders'])
 class OrderListCreateView(ListCreateAPIView):
     serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Order.objects.filter(client=self.request.user.profile.client)
 
     def perform_create(self, serializer):
-        cart = Cart.objects.get(client=self.request.user.profile.client)
-        if not cart.items.exists():
-            raise ValidationError("Cannot create an order with an empty cart.")
+        client = self.request.user.profile.client
+        cart_items = CartItem.objects.filter(cart__client=client)
 
-        order = serializer.save(client=self.request.user.profile.client, total_amount=cart.total)
+        if not cart_items.exists():
+            raise ValidationError("No items in cart to create an order.")
 
-        # Transfer cart items to order items
-        for item in cart.items.all():
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                quantity=item.quantity,
-                price=item.product.price,
-            )
-        # Clear the cart
-        cart.items.all().delete()
-        return order
+        with transaction.atomic():
+            # Check stock before creating an order
+            for item in cart_items:
+                if item.product.stock < item.quantity:
+                    raise ValidationError(f"Insufficient stock for {item.product.name}.")
+
+            # Create the order
+            order = serializer.save(client=client)
+
+            if not self.process_payment(order):
+                raise ValidationError("Insufficient funds in wallet.")
+
+            # Update stock levels and clear cart after successful payment
+            for item in cart_items:
+                item.product.stock -= item.quantity
+                item.product.save()
+
+            cart_items.delete()  # Clear cart after order is completed
+
+    def process_payment(self, order):
+        client_wallet = self.request.user.wallet
+        total_cost = order.total_amount
+
+        if client_wallet.balance >= total_cost:
+            with transaction.atomic():
+                client_wallet.balance -= total_cost
+                client_wallet.save()
+
+                # Assuming pharmacy has a wallet to credit
+                pharmacy_wallet = order.items.first().product.pharmacy.user.wallet
+                pharmacy_wallet.balance += total_cost
+                pharmacy_wallet.save()
+
+                order.payment_status = True
+                order.save()
+            return True
+        return False
 
 
-class OrderRetrieveView(RetrieveUpdateDestroyAPIView):
+@extend_schema(tags=['Order Detail'])
+class OrderRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     serializer_class = OrderSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Order.objects.filter(client=self.request.user.profile.client)
 
 
-# Payment Views
-class PaymentCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+@extend_schema(tags=['Payment'])
+class PaymentCreateView(ListCreateAPIView):
+    serializer_class = OrderSerializer
 
-    def post(self, request, order_id):
-        order = Order.objects.get(id=order_id, client=request.user.profile.client)
-        if order.payment_status:
-            raise ValidationError("Order is already paid.")
+    def create(self, request, *args, **kwargs):
+        order_id = request.data.get("order_id")
+        payment_method = request.data.get("payment_method", "Visa")
 
-        client_wallet = request.user.wallet
-        if client_wallet.balance < order.total_amount:
-            raise ValidationError("Insufficient balance.")
+        try:
+            order = Order.objects.get(id=order_id, client=self.request.user.profile.client)
+        except Order.DoesNotExist:
+            raise ValidationError("Order not found.")
 
-        # Deduct from client wallet and mark order as paid
-        client_wallet.balance -= order.total_amount
-        client_wallet.save()
+        with transaction.atomic():
+            if order.payment_status:
+                raise ValidationError("Order is already paid.")
 
-        order.payment_status = True
-        order.save()
+            if not self.process_payment(order):
+                raise ValidationError("Insufficient balance in wallet.")
 
-        # Record payment
-        payment = Payment.objects.create(
-            order=order,
-            payment_method=request.data.get('payment_method', 'Visa'),
-            amount=order.total_amount,
-            success=True,
+        return Response(
+            {"message": "Payment successful", "order_id": order.id, "payment_method": payment_method},
+            status=status.HTTP_200_OK
         )
 
-        serializer = PaymentSerializer(payment)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def process_payment(self, order):
+        client_wallet = self.request.user.wallet
+        pharmacy_wallet = order.items.first().product.pharmacy.user.wallet
+        total_cost = order.total_amount
+
+        if client_wallet.balance >= total_cost:
+            with transaction.atomic():
+                client_wallet.balance -= total_cost
+                client_wallet.save()
+                pharmacy_wallet.balance += total_cost
+                pharmacy_wallet.save()
+                order.payment_status = True
+                order.save()
+            return True
+        return False

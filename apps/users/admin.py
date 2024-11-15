@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from apps.users.models import User, Hospital, Pharmacy, Doctor, Client, Profile, Booking, Wallet
+from apps.users.models import User, Hospital, Pharmacy, Doctor, Client, Profile, Booking, Wallet, Product, Order, \
+    OrderItem, CartItem
 
 
 @admin.register(User)
@@ -19,7 +20,7 @@ class UserModelAdmin(UserAdmin):
 
 
 @admin.register(Profile)
-class PharmacyModelAdmin(admin.ModelAdmin):
+class ProfileModelAdmin(admin.ModelAdmin):
     pass
 
 
@@ -34,12 +35,12 @@ class PharmacyModelAdmin(admin.ModelAdmin):
 
 
 @admin.register(Doctor)
-class PharmacyModelAdmin(admin.ModelAdmin):
+class DoctorModelAdmin(admin.ModelAdmin):
     pass
 
 
 @admin.register(Client)
-class PharmacyModelAdmin(admin.ModelAdmin):
+class ClientModelAdmin(admin.ModelAdmin):
     pass
 
 
@@ -50,4 +51,24 @@ class BookingModelAdmin(admin.ModelAdmin):
 
 @admin.register(Wallet)
 class WalletModelAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Product)
+class ProductModelAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(CartItem)
+class CartItemModelAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Order)
+class OrderModelAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(OrderItem)
+class OrderItemModelAdmin(admin.ModelAdmin):
     pass

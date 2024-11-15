@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
-from django.db.models import Model, CharField, TextChoices, OneToOneField, CASCADE, TextField, IntegerField, ForeignKey, \
-    ImageField, BooleanField, TimeField, DateField, DecimalField, DateTimeField
+from django.db.models import Model, CharField, TextChoices, OneToOneField, CASCADE, TextField, IntegerField, \
+    ForeignKey, ImageField, BooleanField, TimeField, DateField, DecimalField, DateTimeField
 
 
 class User(AbstractUser):
@@ -103,6 +103,9 @@ class Booking(Model):
 class Wallet(Model):
     user = OneToOneField(User, CASCADE, related_name='wallet')
     balance = DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    card_number = CharField(max_length=16, blank=True, null=True)
+    expiry_date = DateField(blank=True, null=True)
+    cvc = IntegerField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username}'s Wallet - Balance: {self.balance}"
@@ -120,19 +123,8 @@ class Product(Model):
         return self.name
 
 
-class Cart(Model):
-    client = ForeignKey(Client, on_delete=CASCADE, related_name='cart')
-
-    @property
-    def total(self):
-        return sum(item.total_price for item in self.items.all())
-
-    def __str__(self):
-        return f"Cart of {self.client.user.user.username}"
-
-
 class CartItem(Model):
-    cart = ForeignKey(Cart, on_delete=CASCADE, related_name='items')
+    client = ForeignKey(Client, on_delete=CASCADE, related_name='cart_items')
     product = ForeignKey(Product, on_delete=CASCADE)
     quantity = IntegerField(default=1)
 
@@ -141,7 +133,7 @@ class CartItem(Model):
         return self.quantity * self.product.price
 
     def __str__(self):
-        return f"{self.quantity} x {self.product.name}"
+        return f"{self.quantity} x {self.product.name} for {self.client.user.user.username}"
 
 
 class Order(Model):
@@ -166,14 +158,3 @@ class OrderItem(Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
-
-
-class Payment(Model):
-    order = ForeignKey(Order, on_delete=CASCADE, related_name='payment')
-    payment_method = CharField(max_length=50)  # e.g., 'Visa', 'Mastercard'
-    amount = DecimalField(max_digits=10, decimal_places=2)
-    success = BooleanField(default=False)
-    payment_date = DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Payment for Order {self.order.id} - {'Success' if self.success else 'Failed'}"
