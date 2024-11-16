@@ -7,10 +7,13 @@ from apps.users.views import (
     PharmaciesRetrieveUpdateDestroyView, ClientsRetrieveUpdateDestroyView, BookingListCreateView,
     BookingRetrieveUpdateDestroyView
 )
-from apps.users.views.pharmacy import DrugListCreateView, DrugRetrieveUpdateDestroyView, CartView, \
-    OrderListCreateView, OrderRetrieveUpdateDestroyView, PaymentCreateView
+from apps.users.views.pharmacy import (
+    ProductListView, ProductDetailView, CartItemListView, CartItemDetailView,
+    OrderListView, OrderDetailView
+)
 
 urlpatterns = [
+    # User and Profile URLs
     path('user/', UserListCreateView.as_view(), name='user_list'),
     path('profile/', ProfileListCreateView.as_view(), name='profile_list'),
 
@@ -31,7 +34,7 @@ urlpatterns = [
     path('client/<int:pk>/', ClientsRetrieveUpdateDestroyView.as_view(), name='client_detail'),
 
     # Auth
-    path('signup/', SignUpAPIView.as_view(), name='send_email'),
+    path('signup/', SignUpAPIView.as_view(), name='signup'),
     path('login/', LoginAPIView.as_view(), name='login'),
 
     # Password Reset
@@ -43,18 +46,11 @@ urlpatterns = [
     path('bookings/', BookingListCreateView.as_view(), name='booking_list'),
     path('bookings/<int:pk>/', BookingRetrieveUpdateDestroyView.as_view(), name='booking_detail'),
 
-    # Pharmacy Product URLs
-    path('products/', DrugListCreateView.as_view(), name='product_list'),
-    path('products/<int:pk>/', DrugRetrieveUpdateDestroyView.as_view(), name='product_detail'),
-
-    # Cart Item URLs (replacing CartView with individual CartItem management)
-    path('cart-items/', CartView.as_view(), name='cart_item_list'),
-    path('cart-items/<int:pk>/', CartView.as_view(), name='cart_item_detail'),
-
-    # Order URLs
-    path('orders/', OrderListCreateView.as_view(), name='order_list'),
-    path('orders/<int:pk>/', OrderRetrieveUpdateDestroyView.as_view(), name='order_detail'),
-
-    # Payment URLs
-    path('orders/<int:order_id>/payment/', PaymentCreateView.as_view(), name='order_payment'),
+    # Pharmacy E-Commerce URLs
+    path('products/', ProductListView.as_view(), name='product_list'),
+    path('products/<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
+    path('cart/', CartItemListView.as_view(), name='cart_list'),
+    path('cart/<int:pk>/', CartItemDetailView.as_view(), name='cart_detail'),
+    path('orders/', OrderListView.as_view(), name='order_list'),
+    path('orders/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
 ]
