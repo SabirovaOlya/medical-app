@@ -112,12 +112,12 @@ class Wallet(Model):
 
 
 class Product(Model):
-    name = CharField(max_length=255)
-    description = TextField()
-    price = DecimalField(max_digits=10, decimal_places=2)
-    stock = IntegerField(default=0)
+    name = CharField(max_length=255, null=True, blank=True)
+    description = TextField(null=True, blank=True)
+    price = DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    stock = IntegerField(default=0, null=True, blank=True)
     image = ImageField(upload_to='products/%Y/%m/%d/', null=True, blank=True)
-    pharmacy = ForeignKey(Pharmacy, on_delete=CASCADE, related_name='products')
+    pharmacy = ForeignKey(Pharmacy, on_delete=CASCADE, related_name='products', null=True, blank=True)
 
     def __str__(self):
         return self.name
