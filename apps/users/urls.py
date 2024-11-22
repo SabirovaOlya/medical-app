@@ -7,10 +7,11 @@ from apps.users.views import (
     PharmaciesRetrieveUpdateDestroyView, ClientsRetrieveUpdateDestroyView, BookingListCreateView,
     BookingRetrieveUpdateDestroyView
 )
-from apps.users.views.pharmacy import (
-    ProductListView, ProductDetailView, CartItemListView, CartItemDetailView,
-    OrderListView, OrderDetailView
-)
+
+# from apps.users.views.pharmacy import (
+#     ProductListView, ProductDetailView, CartItemListView, CartItemDetailView,
+#     OrderListView, OrderDetailView
+# )
 
 urlpatterns = [
     # User and Profile URLs
@@ -47,10 +48,10 @@ urlpatterns = [
     path('bookings/<int:pk>/', BookingRetrieveUpdateDestroyView.as_view(), name='booking_detail'),
 
     # Pharmacy E-Commerce URLs
-    path('products/', ProductListView.as_view(), name='product_list'),
-    path('products/<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
-    path('cart/', CartItemListView.as_view(), name='cart_list'),
-    path('cart/<int:pk>/', CartItemDetailView.as_view(), name='cart_detail'),
-    path('orders/', OrderListView.as_view(), name='order_list'),
-    path('orders/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
+    # path('products/', ProductListView.as_view(), name='product_list'),
+    # path('products/<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
+    # path('cart/', CartItemListView.as_view(), name='cart_list'),
+    # path('cart/<int:pk>/', CartItemDetailView.as_view(), name='cart_detail'),
+    # path('orders/', OrderListView.as_view(), name='order_list'),
+    # path('orders/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
 ]

@@ -1,9 +1,7 @@
-from django.conf import settings
-from django.core.mail import send_mail
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.users.models import Profile, Doctor, Hospital, Pharmacy, Client, User
+from apps.users.models import Profile, Doctor, Hospital, Pharmacy, Client
 
 
 @receiver(post_save, sender=Profile)
@@ -17,7 +15,6 @@ def create_related_model(sender, instance, created, **kwargs):
             Pharmacy.objects.create(user=instance)
         elif instance.role == Profile.Type.CLIENT:
             Client.objects.create(user=instance)
-
 
 # @receiver(pre_save, sender=User)
 # def user_pre_save(sender, instance: User, **kwargs):

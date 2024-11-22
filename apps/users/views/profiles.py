@@ -5,7 +5,7 @@ from apps.users.models import Profile
 from apps.users.serializers import ProfileModelSerializer
 
 
-@extend_schema(tags=['Profiles'])
+@extend_schema(tags=['Profile list'])
 class ProfileListCreateView(ListCreateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileModelSerializer

@@ -6,7 +6,7 @@ from apps.users.models import Product, CartItem, Order, OrderItem, Wallet
 from apps.users.serializers.pharmacy import ProductSerializer, CartItemSerializer, OrderSerializer
 
 
-class ProductListView(generics.ListCreateAPIView):
+class ProductListView(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
