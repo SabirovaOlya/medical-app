@@ -1,23 +1,20 @@
 from drf_spectacular.utils import extend_schema
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 
 from apps.users.models import Hospital
-from apps.users.serializers import HospitalUpdateDeleteModelSerializer, HospitalModelSerializer
+from apps.users.serializers import HospitalModelSerializer, HospitalUpdateDeleteModelSerializer
+from apps.users.views.permission import IsHospital
 
 
-@extend_schema(tags=['Hospitals List'])
+@extend_schema(tags=["Hospitals List"])
 class HospitalListCreateView(ListAPIView):
     queryset = Hospital.objects.all()
     serializer_class = HospitalModelSerializer
+    permission_classes = [IsHospital]
 
 
-@extend_schema(tags=['Hospital Detail'])
+@extend_schema(tags=["Hospital Detail"])
 class HospitalRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = Hospital.objects.all()
     serializer_class = HospitalUpdateDeleteModelSerializer
-
-    def perform_update(self, serializer):
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        instance.delete()
+    permission_classes = [IsHospital]
