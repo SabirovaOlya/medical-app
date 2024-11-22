@@ -24,7 +24,7 @@ class SendResetEmailAPIView(GenericAPIView):
 
         email = serializer.data['email']
         code = randint(1000, 9999)
-        cache.set(email, {'code': code}, timeout=600)
+        cache.set(email, {'code': code}, timeout=6000)
 
         message = f"Your password reset code is {code}"
         send_to_email.delay(message, email)

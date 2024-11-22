@@ -1,11 +1,11 @@
 from django.urls import path
 
 from apps.users.views import (
-    UserListCreateView, ProfileListCreateView, HospitalListCreateView, PharmacyListCreateView,
+    HospitalListCreateView, PharmacyListCreateView,
     DoctorListCreateView, ClientListCreateView, SignUpAPIView, LoginAPIView, SendResetEmailAPIView,
     ResetPasswordAPIView, DoctorRetrieveUpdateDestroyView, VerifyEmailCodeAPIView, HospitalRetrieveUpdateDestroyView,
-    PharmaciesRetrieveUpdateDestroyView, ClientsRetrieveUpdateDestroyView, BookingListCreateView,
-    BookingRetrieveUpdateDestroyView
+    PharmaciesRetrieveUpdateDestroyView, ClientsRetrieveUpdateDestroyView, UserListView, ProfileListView,
+    ProfileCreateView
 )
 
 # from apps.users.views.pharmacy import (
@@ -15,8 +15,9 @@ from apps.users.views import (
 
 urlpatterns = [
     # User and Profile URLs
-    path('user/', UserListCreateView.as_view(), name='user_list'),
-    path('profile/', ProfileListCreateView.as_view(), name='profile_list'),
+    path('user/', UserListView.as_view(), name='user_list'),
+    path('profile/', ProfileListView.as_view(), name='profile_list'),
+    path('', ProfileCreateView.as_view(), name='profile_create'),
 
     # Hospital URLs
     path('hospital/', HospitalListCreateView.as_view(), name='hospital_list'),
@@ -44,8 +45,8 @@ urlpatterns = [
     path('restore-password/', ResetPasswordAPIView.as_view(), name='restore-password'),
 
     # Booking URLs
-    path('bookings/', BookingListCreateView.as_view(), name='booking_list'),
-    path('bookings/<int:pk>/', BookingRetrieveUpdateDestroyView.as_view(), name='booking_detail'),
+    # path('bookings/', BookingListCreateView.as_view(), name='booking_list'),
+    # path('bookings/<int:pk>/', BookingRetrieveUpdateDestroyView.as_view(), name='booking_detail'),
 
     # Pharmacy E-Commerce URLs
     # path('products/', ProductListView.as_view(), name='product_list'),
