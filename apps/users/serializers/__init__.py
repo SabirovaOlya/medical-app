@@ -7,3 +7,4 @@ from apps.users.serializers.profiles import ProfileModelSerializer
 from apps.users.serializers.reser_password import EmailModelSerializer, VerifyEmailSerializer, ResetPasswordSerializer
 from apps.users.serializers.users import UserModelSerializer
 from apps.users.serializers.booking import BookingSerializer, BookingDetailSerializer
+from apps.users.serializers.wallet import WalletModelSerializer
