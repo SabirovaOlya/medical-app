@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.serializers import ValidationError
@@ -12,7 +14,21 @@ class BookingListCreateView(ListCreateAPIView):
     serializer_class = BookingSerializer
 
     def perform_create(self, serializer):
-        booking = serializer.save(status='PENDING')
+        user = self.request.user
+
+        # Ensure the logged-in user is a client
+        if not hasattr(user, 'profile') or user.profile.role != 'client':
+            raise ValidationError("Only clients can create bookings.")
+
+        # Set the client, date, and time automatically
+        booking = serializer.save(
+            client=user.profile.client,
+            date=datetime.now().date(),
+            time=datetime.now().time(),
+            status='PENDING'
+        )
+
+        # Attempt payment processing
         if self.process_payment(booking):
             booking.payment_status = True
             booking.status = 'CONFIRMED'

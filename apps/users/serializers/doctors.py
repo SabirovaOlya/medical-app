@@ -18,3 +18,17 @@ class DoctorUpdateDeleteModelSerializer(ModelSerializer):
         model = Doctor
         fields = ['name', 'category', 'description', 'score', 'price', 'image', 'hospital']
         read_only_fields = ['id', 'user']
+
+
+class DoctorModelForCategorySerializer(ModelSerializer):
+    class Meta:
+        model = Doctor
+        fields = ['id', 'name', 'description', 'score', 'price', 'image']
+
+
+class DoctorCategoryModelSerializer(ModelSerializer):
+    doctors = DoctorModelForCategorySerializer(many=True, read_only=True, source='doctor_set')
+
+    class Meta:
+        model = DoctorCategory
+        fields = ['id', 'name', 'doctors']

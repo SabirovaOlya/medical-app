@@ -9,7 +9,7 @@ class BookingSerializer(ModelSerializer):
         model = Booking
         fields = ['id', 'client', 'doctor', 'date', 'time', 'reason', 'status', 'payment_status', 'consultation_fee',
                   'admin_fee', 'total']
-        read_only_fields = ['id', 'status', 'payment_status']
+        read_only_fields = ['id', 'client', 'date', 'time', 'status', 'payment_status']
 
 
 class BookingDetailSerializer(ModelSerializer):

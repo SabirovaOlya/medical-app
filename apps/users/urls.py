@@ -2,37 +2,37 @@ from django.urls import path
 
 from apps.users.views import (
     HospitalListCreateView, PharmacyListCreateView,
-    DoctorListCreateView, ClientListCreateView, SignUpAPIView, LoginAPIView, SendResetEmailAPIView,
-    ResetPasswordAPIView, DoctorRetrieveUpdateDestroyView, VerifyEmailCodeAPIView, HospitalRetrieveUpdateDestroyView,
-    PharmaciesRetrieveUpdateDestroyView, ClientsRetrieveUpdateDestroyView, UserListView, ProfileListView,
-    ProfileCreateView, BookingListCreateView, BookingRetrieveUpdateDestroyView
+    DoctorListView, ClientListCreateView, SignUpAPIView, LoginAPIView, SendResetEmailAPIView,
+    ResetPasswordAPIView, DoctorRetrieveView, VerifyEmailCodeAPIView, HospitalRetrieveView,
+    PharmaciesRetrieveView, ClientsRetrieveUpdateDestroyView, UserListView, ProfileListView,
+    ProfileCreateView, BookingListCreateView, BookingRetrieveUpdateDestroyView, DoctorCategoryListView,
+    DoctorCategoryCreateView, DoctorCategoryRetrieveUpdateDestroyView, WalletListView, WalletCreateView,
+    ProductListView, ProductCreateView, ProductDetailView, CartItemListView, CartItemDetailView, OrderListView,
+    OrderDetailView
 )
-from apps.users.views.pharmacy import ProductListView, ProductDetailView, CartItemListView, CartItemDetailView, \
-    OrderListView, OrderDetailView, ProductCreateView
-from apps.users.views.wallet import WalletCreateView, WalletListView
-
-# from apps.users.views.pharmacy import (
-#     ProductListView, ProductDetailView, CartItemListView, CartItemDetailView,
-#     OrderListView, OrderDetailView
-# )
+from apps.users.views.profiles import UserSelfInfoView
 
 urlpatterns = [
     # User and Profile URLs
     path('user/', UserListView.as_view(), name='user_list'),
     path('profile/', ProfileListView.as_view(), name='profile_list'),
     path('profile-create', ProfileCreateView.as_view(), name='profile_create'),
+    path('user/self/', UserSelfInfoView.as_view(), name='user-self-info'),
 
     # Hospital URLs
     path('hospital/', HospitalListCreateView.as_view(), name='hospital_list'),
-    path('hospital/<int:pk>/', HospitalRetrieveUpdateDestroyView.as_view(), name='hospital_detail'),
+    path('hospital/<int:pk>/', HospitalRetrieveView.as_view(), name='hospital_detail'),
 
     # Pharmacy URLs
     path('pharmacy/', PharmacyListCreateView.as_view(), name='pharmacy_list'),
-    path('pharmacy/<int:pk>/', PharmaciesRetrieveUpdateDestroyView.as_view(), name='pharmacy_detail'),
+    path('pharmacy/<int:pk>/', PharmaciesRetrieveView.as_view(), name='pharmacy_detail'),
 
     # Doctor URLs
-    path('doctor/', DoctorListCreateView.as_view(), name='doctor_list'),
-    path('doctor/<int:pk>/', DoctorRetrieveUpdateDestroyView.as_view(), name='doctor_detail'),
+    path('doctor/', DoctorListView.as_view(), name='doctor_list'),
+    path('doctor/<int:pk>/', DoctorRetrieveView.as_view(), name='doctor_detail'),
+    path('categories/', DoctorCategoryListView.as_view(), name='doctor-category-list'),
+    path('categories-create/', DoctorCategoryCreateView.as_view(), name='doctor-category-create'),
+    path('categories/<int:pk>/', DoctorCategoryRetrieveUpdateDestroyView.as_view(), name='doctor-category-detail'),
 
     # Client URLs
     path('client/', ClientListCreateView.as_view(), name='client_list'),

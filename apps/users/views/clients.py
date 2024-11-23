@@ -2,7 +2,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListAPIView
 
 from apps.users.models import Client
-from apps.users.permission import IsClient, IsSuperuser
+from apps.users.permission import IsSuperuser
 from apps.users.serializers import ClientModelSerializer, ClientUpdateDeleteModelSerializer
 
 
@@ -17,7 +17,7 @@ class ClientListCreateView(ListAPIView):
 class ClientsRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = Client.objects.all()
     serializer_class = ClientUpdateDeleteModelSerializer
-    permission_classes = [IsClient | IsSuperuser]
+    permission_classes = [IsSuperuser]
 
     def perform_update(self, serializer):
         serializer.save()
