@@ -1,11 +1,11 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.users.models import User
 from apps.users.serializers import LoginSerializer, SignUpSerializer
+from apps.users.tasks import send_to_email
 
 
 def get_tokens_for_user(user):
@@ -32,8 +32,10 @@ class SignUpAPIView(GenericAPIView):
         user.set_password(password)
         user.save()
 
-        # Generate tokens for the new user
         tokens = get_tokens_for_user(user)
+
+        message = 'You signed up successfully'
+        send_to_email.delay(message, email)
 
         return Response({
             "message": "User registered successfully",
@@ -44,7 +46,6 @@ class SignUpAPIView(GenericAPIView):
 @extend_schema(tags=['Login'])
 class LoginAPIView(GenericAPIView):
     serializer_class = LoginSerializer
-    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -52,7 +53,6 @@ class LoginAPIView(GenericAPIView):
 
         user = User.objects.get(email=serializer.validated_data['email'])
 
-        # Generate tokens for the user
         tokens = get_tokens_for_user(user)
 
         return Response({

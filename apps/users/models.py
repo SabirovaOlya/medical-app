@@ -35,10 +35,18 @@ class Hospital(Model):
         return f"Hospital {self.user}"
 
 
+class DoctorCategory(Model):
+    name = CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class Doctor(Model):
     user = OneToOneField(Profile, on_delete=CASCADE)
     hospital = ForeignKey(Hospital, on_delete=CASCADE, null=True, blank=True)
     name = CharField(max_length=255)
+    category = ForeignKey(DoctorCategory, CASCADE, null=True, blank=True)
     description = TextField(null=True, blank=True)
     image = ImageField(upload_to='doctors/%Y/%m/%d/', null=True, blank=True)
     score = IntegerField(default=0)

@@ -1,24 +1,42 @@
 from django.db import transaction
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
 from apps.users.models import Product, CartItem, Order, OrderItem, Wallet
+from apps.users.permission import IsClient, IsSuperuser, IsPharmacy
 from apps.users.serializers.pharmacy import ProductSerializer, CartItemSerializer, OrderSerializer
 
 
+@extend_schema(tags=['Product list'])
 class ProductListView(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [IsClient | IsSuperuser | IsPharmacy]
+    filter_backends = (DjangoFilterBackend, SearchFilter,)
+    search_fields = ['name', 'description']
 
 
+@extend_schema(tags=['Product Create'])
+class ProductCreateView(generics.CreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [IsPharmacy | IsSuperuser]
+
+
+@extend_schema(tags=['Product Detail'])
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [IsSuperuser | IsPharmacy]
 
 
 class CartItemListView(generics.ListCreateAPIView):
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
+    permission_classes = [IsClient | IsSuperuser]
 
     def create(self, request, *args, **kwargs):
         product_id = request.data.get('product')
@@ -38,11 +56,13 @@ class CartItemListView(generics.ListCreateAPIView):
 class CartItemDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
+    permission_classes = [IsClient | IsSuperuser]
 
 
 class OrderListView(generics.ListCreateAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    permission_classes = [IsClient | IsSuperuser]
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
@@ -96,3 +116,4 @@ class OrderListView(generics.ListCreateAPIView):
 class OrderDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    permission_classes = [IsClient | IsSuperuser]

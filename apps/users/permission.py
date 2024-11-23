@@ -39,9 +39,6 @@ class IsPharmacy(BasePermission):
         return hasattr(user, "profile") and user.profile.role == Profile.Type.PHARMACY
 
 
-class IsOwnerOrReadOnly(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if request.method in ("GET", "HEAD", "OPTIONS"):
-            return True
-
-        return obj.user == request.user
+class IsSuperuser(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated and request.user.is_superuser

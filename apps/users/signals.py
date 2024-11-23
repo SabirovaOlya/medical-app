@@ -1,14 +1,15 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from apps.users.models import Profile, Doctor, Hospital, Pharmacy, Client
+from apps.users.models import Profile, Doctor, Hospital, Pharmacy, Client, DoctorCategory
 
 
 @receiver(post_save, sender=Profile)
 def create_related_model(sender, instance, created, **kwargs):
     if created:
         if instance.role == Profile.Type.DOCTOR:
-            Doctor.objects.create(user=instance)
+            default_category, _ = DoctorCategory.objects.get_or_create(name="General")
+            Doctor.objects.create(user=instance, category=default_category)
         elif instance.role == Profile.Type.HOSPITAL:
             Hospital.objects.create(user=instance)
         elif instance.role == Profile.Type.PHARMACY:
