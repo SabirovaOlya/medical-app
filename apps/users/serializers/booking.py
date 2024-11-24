@@ -7,9 +7,8 @@ from apps.users.serializers import DoctorModelSerializer
 class BookingSerializer(ModelSerializer):
     class Meta:
         model = Booking
-        fields = ['id', 'client', 'doctor', 'date', 'time', 'reason', 'status', 'payment_status', 'consultation_fee',
-                  'admin_fee', 'total']
-        read_only_fields = ['id', 'client', 'date', 'time', 'status', 'payment_status']
+        fields = ['id', 'doctor', 'reason', 'status', 'payment_status', 'consultation_fee', 'admin_fee', 'total']
+        read_only_fields = ['id', 'date', 'time', 'status', 'payment_status', 'consultation_fee', 'admin_fee', 'total']
 
 
 class BookingDetailSerializer(ModelSerializer):
@@ -18,4 +17,4 @@ class BookingDetailSerializer(ModelSerializer):
     class Meta:
         model = Booking
         fields = ['doctor', 'date', 'time', 'reason', 'status', 'payment_status']
-        read_only_fields = ['id', 'status', 'payment_status']
+        read_only_fields = ['id', 'date', 'time', 'status', 'payment_status']
