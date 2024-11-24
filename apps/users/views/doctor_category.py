@@ -20,8 +20,8 @@ class DoctorCategoryCreateView(CreateAPIView):
     permission_classes = [IsSuperuser]
 
 
-@extend_schema(tags=["Doctor Category Detail"])
-class DoctorCategoryRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
-    queryset = DoctorCategory.objects.all()
-    serializer_class = DoctorCategoryModelSerializer
-    permission_classes = [IsSuperuser]
+# @extend_schema(tags=["Doctor Category Detail"])
+# class DoctorCategoryRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+#     queryset = DoctorCategory.objects.all()
+#     serializer_class = DoctorCategoryModelSerializer
+#     permission_classes = [IsSuperuser]

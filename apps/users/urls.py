@@ -6,10 +6,11 @@ from apps.users.views import (
     ResetPasswordAPIView, DoctorRetrieveView, VerifyEmailCodeAPIView, HospitalRetrieveView,
     PharmaciesRetrieveView, ClientsRetrieveUpdateDestroyView, UserListView, ProfileListView,
     ProfileCreateView, BookingListCreateView, BookingRetrieveUpdateDestroyView, DoctorCategoryListView,
-    DoctorCategoryCreateView, DoctorCategoryRetrieveUpdateDestroyView, WalletListView, WalletCreateView,
+    DoctorCategoryCreateView, WalletListView, WalletCreateView,
     ProductListView, ProductCreateView, ProductDetailView, CartItemListView, CartItemDetailView, OrderListView,
     OrderDetailView
 )
+from apps.users.views.favorite import FavoriteProductListCreateView, FavoriteProductDeleteView
 from apps.users.views.profiles import UserSelfInfoView
 
 urlpatterns = [
@@ -32,7 +33,7 @@ urlpatterns = [
     path('doctor/<int:pk>/', DoctorRetrieveView.as_view(), name='doctor_detail'),
     path('categories/', DoctorCategoryListView.as_view(), name='doctor-category-list'),
     path('categories-create/', DoctorCategoryCreateView.as_view(), name='doctor-category-create'),
-    path('categories/<int:pk>/', DoctorCategoryRetrieveUpdateDestroyView.as_view(), name='doctor-category-detail'),
+    # path('categories/<int:pk>/', DoctorCategoryRetrieveUpdateDestroyView.as_view(), name='doctor-category-detail'),
 
     # Client URLs
     path('client/', ClientListCreateView.as_view(), name='client_list'),
@@ -61,4 +62,8 @@ urlpatterns = [
     path('cart/<int:pk>/', CartItemDetailView.as_view(), name='cart_detail'),
     path('orders/', OrderListView.as_view(), name='order_list'),
     path('orders/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
+
+    # Favourite URLs
+    path('favourites', FavoriteProductListCreateView.as_view(), name='Favourite list'),
+    path('favourite-delete/<int:pk>', FavoriteProductDeleteView.as_view(), name='Favourite Delete')
 ]

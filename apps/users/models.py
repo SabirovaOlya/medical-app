@@ -166,3 +166,12 @@ class OrderItem(Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.product.name}"
+
+
+class FavoriteProduct(Model):
+    client = ForeignKey(Client, on_delete=CASCADE, related_name='favorite_products')
+    product = ForeignKey(Product, on_delete=CASCADE, related_name='favorited_by')
+    added_on = DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.client.user.user.username} - {self.product.name}"
