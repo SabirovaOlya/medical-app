@@ -8,17 +8,18 @@ from apps.users.views import (
     ProfileCreateView, BookingListCreateView, BookingRetrieveUpdateDestroyView, DoctorCategoryListView,
     DoctorCategoryCreateView, WalletListView, WalletCreateView,
     ProductListView, ProductCreateView, ProductDetailView, CartItemListView, CartItemDetailView, OrderListView,
-    OrderDetailView
+    OrderDetailView, UserSelfInfoView, FavoriteProductListCreateView, FavoriteProductDeleteView
 )
-from apps.users.views.favorite import FavoriteProductListCreateView, FavoriteProductDeleteView
-from apps.users.views.profiles import UserSelfInfoView
+
+client = [
+    path('user/self/', UserSelfInfoView.as_view(), name='user-self-info'),
+]
 
 urlpatterns = [
     # User and Profile URLs
     path('user/', UserListView.as_view(), name='user_list'),
     path('profile/', ProfileListView.as_view(), name='profile_list'),
     path('profile-create', ProfileCreateView.as_view(), name='profile_create'),
-    path('user/self/', UserSelfInfoView.as_view(), name='user-self-info'),
 
     # Hospital URLs
     path('hospital/', HospitalListCreateView.as_view(), name='hospital_list'),
@@ -67,3 +68,5 @@ urlpatterns = [
     path('favourites', FavoriteProductListCreateView.as_view(), name='Favourite list'),
     path('favourite-delete/<int:pk>', FavoriteProductDeleteView.as_view(), name='Favourite Delete')
 ]
+
+urlpatterns += client

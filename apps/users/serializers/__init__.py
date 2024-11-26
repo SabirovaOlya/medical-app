@@ -2,6 +2,7 @@ from apps.users.serializers.doctors import DoctorModelSerializer, DoctorUpdateDe
 from apps.users.serializers.auth import SignUpSerializer, LoginSerializer
 from apps.users.serializers.booking import BookingSerializer, BookingDetailSerializer
 from apps.users.serializers.clients import ClientModelSerializer, ClientUpdateDeleteModelSerializer
+from apps.users.serializers.favorite import FavoriteProductSerializer
 from apps.users.serializers.hospitals import HospitalModelSerializer, HospitalUpdateDeleteModelSerializer
 from apps.users.serializers.pharmacies import PharmacyModelSerializer, PharmacyUpdateDeleteModelSerializer
 from apps.users.serializers.pharmacy import ProductSerializer, CartItemSerializer, OrderItemSerializer, OrderSerializer
