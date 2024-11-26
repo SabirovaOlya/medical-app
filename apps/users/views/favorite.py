@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView
 
 from apps.users.models import FavoriteProduct
-from apps.users.serializers.favorite import FavoriteProductSerializer
+from apps.users.serializers import FavoriteProductSerializer
 
 
 @extend_schema(tags=['Favourite List'])
