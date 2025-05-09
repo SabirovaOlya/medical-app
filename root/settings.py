@@ -59,14 +59,11 @@ WSGI_APPLICATION = 'root.wsgi.application'
 
 DATABASES = {
     'default': {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv('PG_DB_NAME'),
-        "USER": os.getenv('PG_USER'),
-        "PASSWORD": os.getenv('PG_PASSWORD'),
-        "HOST": os.getenv('PG_HOST'),
-        "PORT": os.getenv('PG_PORT'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / "db.sqlite3",
     }
 }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -107,8 +104,8 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Your Project API',
-    'DESCRIPTION': 'Your project description',
+    'TITLE': 'Medical App API',
+    'DESCRIPTION': 'an app which helps pharmacies, hospitals and people',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS
